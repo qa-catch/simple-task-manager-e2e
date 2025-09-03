@@ -1,0 +1,18 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Reports
+reports/html-report/
+reports/test-results.json
+reports/screenshots/
+reports/videos/
+
+# Logs
+logs/
+*.log

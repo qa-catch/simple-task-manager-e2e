@@ -1,0 +1,30 @@
+{
+  "name": "simple-task-manager-e2e",
+  "version": "1.0.0",
+  "description": "E2E tests for Simple Task Manager using Playwright",
+  "main": "index.js",
+  "scripts": {
+    "test": "npx playwright test",
+    "test:headed": "npx playwright test --headed",
+    "test:debug": "npx playwright test --debug", 
+    "test:report": "npx playwright show-report",
+    "test:auth": "npx playwright test tests/auth --headed",
+    "test:tasks": "npx playwright test tests/tasks --headed",
+    "test:tag": "npx playwright test tests/tasks --headed --grep",
+    "test:tasks-create": "npx playwright test tests/tasks/create-task.spec.ts --headed",
+    "test:tasks-delete": "npx playwright test tests/tasks/delete-task.spec.ts --headed",
+    "test:tasks-edit": "npx playwright test tests/tasks/edit-task.spec.ts --headed",
+    "test:tasks-mark-complete": "npx playwright test tests/tasks/mark-complete.spec.ts --headed",
+    "test:tasks-cleanup": "npx playwright test tests/tasks/cleanup-tasks.spec.ts --headed",
+    "test:edge": "npx playwright test tests/edge-cases --headed",
+    "test:ui": "npx playwright test --ui"
+  },
+  "keywords": ["playwright", "e2e", "testing", "typescript"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@playwright/test": "^1.40.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}
