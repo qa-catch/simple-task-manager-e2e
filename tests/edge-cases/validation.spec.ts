@@ -26,6 +26,8 @@ test.describe('Edge Cases and Validation Tests', () => {
     });
     
     await test.step('Verify task is created and special characters are properly escaped', async () => {
+      const taskContainer = taskManager.getTaskContainer(uniqueTaskTitle);
+      await expect(taskContainer).toBeVisible();
       await taskManager.verifyTaskWithDetails(
         uniqueTaskTitle,
         TestTasks.specialChars.description,
@@ -34,12 +36,14 @@ test.describe('Edge Cases and Validation Tests', () => {
     });
     
     await test.step('Ensure no JavaScript injection occurred', async () => {
-      await expect(page.locator('script')).toHaveCount(0);
+      // Scope the script check to the created task container to avoid counting app scripts
+      const taskContainer = taskManager.getTaskContainer(uniqueTaskTitle);
+      await expect(taskContainer.locator('script')).toHaveCount(0);
     });
     
     await test.step('Clean up - delete created task', async () => {
       await taskManager.getDeleteButton(uniqueTaskTitle).click();
-      await taskManager.deleteOkButton().click();
+      await taskManager.confirmDeletion();
     });
   });
 
@@ -52,17 +56,18 @@ test.describe('Edge Cases and Validation Tests', () => {
     });
     
     await test.step('Verify task is created', async () => {
-      await taskManager.verifyTaskExists(uniqueTaskTitle);
+      const taskContainer = taskManager.getTaskContainer(uniqueTaskTitle);
+      await expect(taskContainer).toBeVisible();
     });
     
+    // CORRECTED: Use the new method that properly searches within task container
     await test.step('Verify application handles long text appropriately', async () => {
-      const descriptionElement = page.getByText(longDescription.substring(0, 50));
-      await expect(descriptionElement).toBeVisible();
+      await taskManager.verifyTaskLongDescription(uniqueTaskTitle, longDescription);
     });
     
     await test.step('Clean up - delete created task', async () => {
       await taskManager.getDeleteButton(uniqueTaskTitle).click();
-      await taskManager.deleteOkButton().click();
+      await taskManager.confirmDeletion();
     });
   });
 
@@ -86,12 +91,18 @@ test.describe('Edge Cases and Validation Tests', () => {
   test('Should prevent task creation with only whitespace in title', async ({ page }) => {
     await test.step('Try to create task with whitespace-only title', async () => {
       await taskManager.taskTitleInput().fill('   '); // Only whitespace
-      await taskManager.submitButton().click();
+      // Don't click submit yet - validation method will handle it
     });
     
-    await test.step('Verify HTML5 validation message for title field', async () => {
-      const titleValidationMessage = await taskManager.taskTitleInput().evaluate(el => el.validationMessage);
-      expect(titleValidationMessage).toBe(ErrorMessages.requiredField);
+    await test.step('Verify HTML5 validation prevents submission', async () => {
+      // Use the enhanced validation verification method
+      await taskManager.verifyFieldValidationMessage(taskManager.taskTitleInput(), ErrorMessages.requiredField);
+    });
+    
+    await test.step('Verify task was not created', async () => {
+      // Verify no task with whitespace title exists
+      const whitespaceTaskExists = await page.getByText('   ').count();
+      expect(whitespaceTaskExists).toBe(0);
     });
   });
 
@@ -109,16 +120,14 @@ test.describe('Edge Cases and Validation Tests', () => {
     
     await test.step('Verify all tasks were created successfully', async () => {
       for (const title of createdTaskTitles) {
-        await taskManager.verifyTaskExists(title);
+        const taskContainer = taskManager.getTaskContainer(title);
+        await expect(taskContainer).toBeVisible();
       }
     });
     
+    // CORRECTED: Use the improved deletion method with better error handling
     await test.step('Quickly delete all tasks', async () => {
-      for (const title of createdTaskTitles) {
-        await taskManager.getDeleteButton(title).click();
-        await taskManager.deleteOkButton().click();
-        await page.waitForTimeout(300);
-      }
+      await taskManager.deleteTasksByTitles(createdTaskTitles);
     });
     
     await test.step('Verify all tasks were deleted', async () => {
@@ -147,7 +156,7 @@ test.describe('Edge Cases and Validation Tests', () => {
     
     await test.step('Clean up - delete persisted task', async () => {
       await taskManager.getDeleteButton(uniqueTaskTitle).click();
-      await taskManager.deleteOkButton().click();
+      await taskManager.confirmDeletion();
     });
   });
 });
