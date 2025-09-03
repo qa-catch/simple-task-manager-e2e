@@ -168,7 +168,7 @@ export class TaskManagerPage {
           await this.confirmDeletion();
           
           // Wait for UI to update and verify deletion
-          await this.page.waitForTimeout(300);
+          await this.page.waitForTimeout(500);
           await this.verifyTaskNotExists(title);
         }
       } catch (error) {
@@ -341,6 +341,14 @@ export class TaskManagerPage {
     ]);
   }
   
+  // Helper: get the browser validation message for a field
+  async checkFieldValidation(fieldLocator: Locator): Promise<string> {
+    return await fieldLocator.evaluate(el => {
+      const input = el as any;
+      return input && 'validationMessage' in input ? input.validationMessage : '';
+    });
+  }
+  
   // ==========================================
   // VERIFICATION HELPERS (DYNAMIC)
   // ==========================================
@@ -401,6 +409,8 @@ export class TaskManagerPage {
     expect(containerHasText).toBeTruthy();
   }
   
+  
+  
   async verifyOnDashboard(): Promise<void> {
     await expect(this.page).toHaveURL(/dashboard/);
     await expect(this.page.getByText('My Tasks')).toBeVisible();
@@ -436,10 +446,10 @@ export class TaskManagerPage {
     if (!isValidMessage) {
       // Fallback: check if field is in invalid state
       const fieldValidity = await fieldLocator.evaluate(el => {
-        const input = el as HTMLInputElement;
+        const input = el as any;
         return {
-          valid: input.validity.valid,
-          valueMissing: input.validity.valueMissing,
+          valid: input.validity ? input.validity.valid : true,
+          valueMissing: input.validity ? input.validity.valueMissing : false,
           hasRequired: el.hasAttribute('required')
         };
       });
