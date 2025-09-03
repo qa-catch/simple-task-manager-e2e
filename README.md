@@ -15,7 +15,7 @@ This project contains comprehensive E2E tests covering user authentication, task
 
 1. **Clone the repository**
    ```bash
-   git clone <your-repo-url>
+   git clone https://github.com/qa-catch/simple-task-manager-e2e.git
    cd simple-task-manager-e2e
    ```
 
